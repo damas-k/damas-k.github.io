@@ -1,1 +1,695 @@
-hi nigga
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voltage — IBEW Study Tool by Damask Holdings</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loadingOverlay" style="display:none">
+  <div class="spinner spinner-lg"></div>
+  <div class="loading-text" id="loadingText">Generating your quiz…</div>
+  <div class="loading-sub" id="loadingSub">Analyzing uploaded content with AI</div>
+</div>
+
+<!-- API KEY MODAL -->
+<div class="modal-overlay" id="apiModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('apiModal')">✕</button>
+    <div class="modal-title">⚙️ Configure OpenRouter API Key</div>
+    <div class="modal-desc">Get a free key at openrouter.ai — no billing or credit card required. Sign up → API Keys → Create Key → paste it here.</div>
+    <div class="form-group">
+      <label class="form-label">OpenRouter API Key</label>
+      <input type="password" class="form-input" id="apiKeyInput" placeholder="sk-or-...">
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-top:8px;margin-bottom:20px;">Get a free key at <strong style="color:var(--gold)">openrouter.ai</strong> → API Keys → Create Key</div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-primary btn-full" onclick="saveApiKey()">Save Key</button>
+      <button class="btn btn-secondary" onclick="closeModal('apiModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('importModal')">&#x2715;</button>
+    <div class="modal-title">📥 Import Voltage Data</div>
+    <div class="modal-desc">Choose how to handle the imported data:</div>
+    <div id="importSummary"></div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn btn-danger btn-full" id="importBtnReplace">🔄 Replace All Data</button>
+      <button class="btn btn-primary btn-full" id="importBtnMerge">🔀 Merge with Existing</button>
+      <button class="btn btn-ghost btn-full" id="importBtnCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- ════ LOGIN VIEW ════ -->
+<div id="view-login" class="view active">
+  <div class="login-card">
+    <div class="brand-wordmark">Damask Holdings</div>
+    <div class="login-logo">⚡</div>
+    <div class="login-title">Voltage</div>
+    <div class="login-subtitle">IBEW Apprentice Study Platform<br>Master the code. Ace the exam.</div>
+    <button class="btn-google" onclick="handleGoogleSignIn()">
+      <svg class="google-icon" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Continue with Google
+    </button>
+    <div id="gsi-button-container" style="position:absolute;opacity:0;pointer-events:none;height:0;overflow:hidden;"></div>
+    <div class="login-footer">By signing in, you agree to use this tool responsibly.<br>Study hard. Work safe. Know the code.</div>
+  </div>
+  <div style="position:absolute;bottom:24px;left:0;right:0;text-align:center;">
+    <div class="footer-brand">Damask Holdings</div>
+    <div style="font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:0.05em;">Built for the trades.</div>
+  </div>
+</div>
+
+<!-- ════ APP VIEW ════ -->
+<div id="view-app" class="view">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">⚡</div>
+        Voltage
+      </div>
+      <div class="sidebar-tagline">IBEW Study Tool</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label" style="text-shadow:0 0 8px rgba(201,168,76,0.8),0 0 16px rgba(201,168,76,0.4);color:var(--gold);letter-spacing:0.2em;font-size:11px;font-weight:700;">GUIDE</div>
+      <div class="nav-item" onclick="navigate('guide')" data-page="guide"><span class="nav-icon">📘</span> Guide</div>
+      <div class="nav-section-label">Study</div>
+      <div class="nav-item active" onclick="navigate('dashboard')" data-page="dashboard"><span class="nav-icon">🏠</span> Dashboard</div>
+      <div class="nav-item" onclick="navigate('upload')" data-page="upload"><span class="nav-icon">📁</span> Upload Materials</div>
+      <div class="nav-item" onclick="navigate('quiz')" data-page="quiz"><span class="nav-icon">📝</span> Take a Quiz</div>
+      <div class="nav-item" onclick="navigate('flashcards')" data-page="flashcards"><span class="nav-icon">🃏</span> Flashcards</div>
+      <div class="nav-section-label">Track</div>
+      <div class="nav-item" onclick="navigate('progress')" data-page="progress"><span class="nav-icon">📊</span> My Progress</div>
+      <div class="nav-item" onclick="navigate('wrong-answers')" data-page="wrong-answers"><span class="nav-icon">❌</span> Wrong Answers<span class="nav-badge" id="wrongAnswersBadge" style="display:none;"></span></div>
+      <div class="nav-section-label">Tools</div>
+      <div class="nav-item" onclick="navigate('notes')" data-page="notes"><span class="nav-icon">📓</span> Notes</div>
+      <div class="nav-item" onclick="navigate('bending-calc')" data-page="bending-calc"><span class="nav-icon">📐</span> Bending Calc</div>
+      <div class="nav-item" onclick="navigate('nec-reference')" data-page="nec-reference"><span class="nav-icon">📗</span> NEC Reference</div>
+      <div class="nav-item" onclick="navigate('wire-reference')" data-page="wire-reference"><span class="nav-icon">🔌</span> Wire Reference</div>
+      <div class="nav-item" onclick="navigate('formulas')" data-page="formulas"><span class="nav-icon">🧮</span> Formulas</div>
+      <div class="nav-section-label">Reference</div>
+      <div class="nav-item" onclick="navigate('topics')" data-page="topics"><span class="nav-icon">📖</span> Study Topics</div>
+      <div class="nav-item" onclick="navigate('settings')" data-page="settings"><span class="nav-icon">⚙️</span> Settings</div>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="sidebarAvatar">U</div>
+      <div class="user-info">
+        <div class="user-name" id="sidebarUserName">Apprentice</div>
+        <div class="user-role" id="sidebarUserRole">Year 1</div>
+      </div>
+      <button class="btn-signout" onclick="signOut()" title="Sign out">↩</button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="btn-hamburger" onclick="toggleSidebar()">☰</button>
+        <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      </div>
+      <div class="topbar-actions">
+        <span class="badge badge-red" id="rateLimitBadge" style="display:none;cursor:default;" title="Rate limits disabled — API quota burns fast!">⚡ Limits OFF</span>
+        <button class="btn btn-secondary btn-sm" onclick="openModal('apiModal')" title="API Settings">⚙️ API Key</button>
+        <div class="badge badge-gold" id="topbarYearBadge">Year 1</div>
+      </div>
+    </div>
+
+    <div class="page-inner">
+
+      <!-- ─── DASHBOARD ─── -->
+      <div id="page-dashboard" class="page-section active">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Good evening, <span class="highlight-gold" id="dashboardName">Apprentice</span> 👋</div>
+            <div class="section-desc">Ready to hit the books? Your next exam won't study itself.</div>
+          </div>
+          <button class="btn btn-primary" onclick="navigate('upload')">+ New Quiz</button>
+        </div>
+        <div class="grid-4 mb-16" style="margin-bottom:20px;">
+          <div class="stat-card"><span class="stat-icon">📝</span><div class="stat-label">Quizzes Taken</div><div class="stat-value" id="statQuizzes">0</div><div class="stat-sub">All time</div></div>
+          <div class="stat-card"><span class="stat-icon">🎯</span><div class="stat-label">Avg Score</div><div class="stat-value" id="statAvgScore">—</div><div class="stat-sub">Last 5 sessions</div></div>
+          <div class="stat-card"><span class="stat-icon">🔥</span><div class="stat-label">Study Streak</div><div class="stat-value" id="statStreak">0</div><div class="stat-sub">Days in a row</div></div>
+          <div class="stat-card"><span class="stat-icon">📁</span><div class="stat-label">Files Uploaded</div><div class="stat-value" id="statFiles">0</div><div class="stat-sub">Materials loaded</div></div>
+        </div>
+        <div class="grid-2" style="gap:20px;">
+          <div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">📈 Recent Scores</div><button class="btn btn-ghost btn-sm" onclick="navigate('progress')">View All →</button></div>
+              <div id="dashboardSessionList"><div class="empty-state" style="padding:24px;"><span class="empty-icon">📊</span><div class="empty-title">No sessions yet</div><div class="empty-desc">Complete a quiz to see your scores here</div></div></div>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-header"><div class="card-title">⚡ Quick Start</div></div>
+              <div style="display:flex;flex-direction:column;gap:10px;" id="quickStartButtons"></div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">📁 Uploaded Files</div><button class="btn btn-ghost btn-sm" onclick="navigate('upload')">+ Add</button></div>
+              <div id="dashboardFileList"><div class="empty-state" style="padding:24px;"><span class="empty-icon">📂</span><div class="empty-title">No files yet</div><div class="empty-desc">Upload PDFs, images, or documents to generate custom quizzes</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── UPLOAD ─── -->
+      <div id="page-upload" class="page-section">
+        <div class="section-header">
+          <div><div class="section-title">Upload Study Materials</div><div class="section-desc">Upload NEC codebooks, wiring diagrams, handouts — AI generates a targeted quiz from your content.</div></div>
+        </div>
+        <div class="card mb-20" style="margin-bottom:20px;">
+          <div class="drop-zone" id="dropZone">
+            <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt" multiple onchange="handleFileSelect(event)">
+            <span class="drop-icon">📎</span>
+            <div class="drop-title">Drop files here or click to browse</div>
+            <div class="drop-desc">Supports PDF, JPG, PNG, DOC, DOCX, TXT</div>
+            <div class="drop-formats"><span class="badge badge-muted">📄 PDF</span><span class="badge badge-muted">🖼️ JPG/PNG</span><span class="badge badge-muted">📝 DOC/DOCX</span><span class="badge badge-muted">📃 TXT</span></div>
+          </div>
+          <div class="file-list" id="fileList"></div>
+        </div>
+        <div class="card" id="quizConfigCard" style="display:none;">
+          <div class="card-header"><div class="card-title">🎛️ Quiz Configuration</div></div>
+          <div class="settings-grid">
+            <div class="form-group"><label class="form-label">Difficulty Level</label><select class="form-select" id="difficultySelect"><option value="year1">Apprentice — Year 1</option><option value="year2">Apprentice — Year 2</option><option value="year3">Apprentice — Year 3</option><option value="year4">Apprentice — Year 4</option><option value="journeyman">Journeyman</option></select></div>
+            <div class="form-group"><label class="form-label">Number of Questions</label><select class="form-select" id="questionCountSelect"><option value="5">5 Questions</option><option value="10" selected>10 Questions</option><option value="15">15 Questions</option><option value="20">20 Questions</option><option value="30">30 Questions</option></select></div>
+            <div class="form-group"><label class="form-label">Focus Topic</label><select class="form-select" id="focusTopicSelect"><option value="general">General — All Topics</option><option value="nec">NEC Code References</option><option value="ohm">Ohm's Law & Calculations</option><option value="load">Load Calculations</option><option value="conduit">Conduit Bending</option><option value="motors">Motor Controls</option><option value="grounding">Grounding & Bonding</option><option value="safety">OSHA / NFPA 70E Safety</option><option value="wiring">Wiring Methods</option></select></div>
+            <div class="form-group"><label class="form-label">Quiz Mode</label><select class="form-select" id="quizModeSelect"><option value="quiz">Quiz Mode</option><option value="flashcards">Flashcard Mode</option><option value="both">Both</option></select></div>
+          </div>
+          <div class="form-group" style="margin-bottom:16px;">
+            <label class="form-label">Question Types</label>
+            <div class="checkbox-grid">
+              <label class="checkbox-item checked" id="chk-mc"><input type="checkbox" checked onchange="updateCheckbox(this)"> Multiple Choice</label>
+              <label class="checkbox-item checked" id="chk-tf"><input type="checkbox" checked onchange="updateCheckbox(this)"> True / False</label>
+              <label class="checkbox-item checked" id="chk-fill"><input type="checkbox" checked onchange="updateCheckbox(this)"> Fill in the Blank</label>
+              <label class="checkbox-item" id="chk-short"><input type="checkbox" onchange="updateCheckbox(this)"> Short Answer</label>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-lg btn-full btn-pulse" onclick="generateQuiz()" id="generateBtn">⚡ Generate Quiz with AI</button>
+        </div>
+      </div>
+
+      <!-- ─── QUIZ ─── -->
+      <div id="page-quiz" class="page-section">
+        <div id="quizContainer">
+          <div class="empty-state"><span class="empty-icon">📝</span><div class="empty-title">No active quiz</div><div class="empty-desc">Upload materials and generate a quiz, or use Quick Start from the Dashboard.</div><button class="btn btn-primary" style="margin-top:16px;" onclick="navigate('upload')">Upload & Generate</button></div>
+        </div>
+      </div>
+
+      <!-- ─── FLASHCARDS ─── -->
+      <div id="page-flashcards" class="page-section">
+        <div id="flashcardContainer">
+          <div class="empty-state"><span class="empty-icon">🃏</span><div class="empty-title">No flashcards loaded</div><div class="empty-desc">Generate a quiz in Flashcard Mode to study here.</div><button class="btn btn-primary" style="margin-top:16px;" onclick="navigate('upload')">Create Flashcards</button></div>
+        </div>
+      </div>
+
+      <!-- ─── PROGRESS ─── -->
+      <div id="page-progress" class="page-section">
+        <div class="section-header">
+          <div><div class="section-title">My Progress</div><div class="section-desc">Track your performance across all sessions and topics.</div></div>
+          <button class="btn btn-danger btn-sm" onclick="clearProgress()">Clear History</button>
+        </div>
+        <div class="grid-4" style="margin-bottom:20px;">
+          <div class="stat-card"><span class="stat-icon">📝</span><div class="stat-label">Total Quizzes</div><div class="stat-value" id="pStatQuizzes">0</div></div>
+          <div class="stat-card"><span class="stat-icon">✅</span><div class="stat-label">Best Score</div><div class="stat-value" id="pStatBest">—</div></div>
+          <div class="stat-card"><span class="stat-icon">📈</span><div class="stat-label">Avg Score</div><div class="stat-value" id="pStatAvg">—</div></div>
+          <div class="stat-card"><span class="stat-icon">🎯</span><div class="stat-label">Questions Answered</div><div class="stat-value" id="pStatQuestions">0</div></div>
+        </div>
+        <div class="chart-wrap" style="margin-bottom:20px;"><div class="chart-title">Score History</div><canvas id="progressChart" class="chart-canvas" height="180"></canvas></div>
+        <div class="card"><div class="card-header"><div class="card-title">Session History</div></div><div class="session-list" id="progressSessionList"><div class="empty-state"><span class="empty-icon">📊</span><div class="empty-title">No sessions recorded</div></div></div></div>
+      </div>
+
+      <!-- ─── TOPICS ─── -->
+      <div id="page-topics" class="page-section">
+        <div class="section-header">
+          <div><div class="section-title">Electrical Study Topics</div><div class="section-desc">IBEW apprentice curriculum — tap any topic to generate a subject-locked quiz.</div></div>
+        </div>
+        <div id="topicsGrid"></div>
+      </div>
+
+      <!-- ─── SETTINGS ─── -->
+      <div id="page-settings" class="page-section">
+        <div class="section-header"><div><div class="section-title">Settings</div><div class="section-desc">Customize your study experience.</div></div></div>
+        <div class="card">
+          <div class="settings-section">
+            <div class="settings-section-title">Account</div>
+            <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Google Account</div><div class="settings-row-desc" id="settingsEmail">—</div></div><button class="btn btn-secondary btn-sm" onclick="signOut()">Sign Out</button></div>
+            <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Apprentice Year</div><div class="settings-row-desc">Set your current training year</div></div><select class="form-select" style="width:auto;" id="yearSelect" onchange="updateYear()"><option value="Year 1">Year 1</option><option value="Year 2">Year 2</option><option value="Year 3">Year 3</option><option value="Year 4">Year 4</option><option value="Year 5">Year 5</option><option value="Journeyman">Journeyman</option></select></div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">AI Configuration</div>
+            <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">OpenRouter API Key</div><div class="settings-row-desc">Required for AI quiz generation and AI Study Assistant</div></div><button class="btn btn-secondary btn-sm" onclick="openModal('apiModal')">Configure</button></div>
+            <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">API Key Status</div></div><div id="apiKeyStatus" class="badge badge-muted">Not Set</div></div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">Quiz Preferences</div>
+            <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Show NEC References</div><div class="settings-row-desc">Display code section references with questions</div></div><label class="toggle"><input type="checkbox" checked id="toggleNEC"><span class="toggle-slider"></span></label></div>
+            <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Show Explanations After Answer</div><div class="settings-row-desc">Display detailed feedback for each question</div></div><label class="toggle"><input type="checkbox" checked id="toggleExplain"><span class="toggle-slider"></span></label></div>
+            <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Show Timer</div><div class="settings-row-desc">Track time spent per question</div></div><label class="toggle"><input type="checkbox" checked id="toggleTimer"><span class="toggle-slider"></span></label></div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">Data</div>
+            <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Clear All Progress</div></div><button class="btn btn-danger btn-sm" onclick="clearProgress()">Clear</button></div>
+            <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Clear Uploaded Files</div></div><button class="btn btn-danger btn-sm" onclick="clearFiles()">Clear</button></div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-section-title">Backup &amp; Restore</div>
+            <div style="background:var(--card);border:1px solid var(--border);border-left:4px solid var(--gold);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;">
+              <div style="font-size:13px;color:var(--text);line-height:1.6;">💾 <strong>Your progress, notes, and wrong answers are saved to your browser only.</strong> Clearing your browser cache or switching devices will erase everything. Export your data regularly to keep it safe.</div>
+            </div>
+            <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Export Data</div><div class="settings-row-desc">Download all your data as a <code style="font-size:11px;color:var(--gold);">.voltage</code> file</div></div><button class="btn btn-secondary btn-sm" onclick="exportData()">⬇️ Export</button></div>
+            <div class="settings-row"><div class="settings-row-info"><div class="settings-row-title">Import Data</div><div class="settings-row-desc">Restore from a <code style="font-size:11px;color:var(--gold);">.voltage</code> file</div></div><button class="btn btn-secondary btn-sm" onclick="importData()">⬆️ Import</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── WRONG ANSWERS ─── -->
+      <div id="page-wrong-answers" class="page-section">
+        <div class="section-header">
+          <div><div class="section-title">Wrong Answers</div><div class="section-desc">Questions you've missed — grouped by topic for targeted re-drilling.</div></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;"><button class="btn btn-primary" onclick="startReDrill()">🔁 Re-Drill</button><button class="btn btn-danger" onclick="clearWrongAnswers()">🗑️ Clear All</button></div>
+        </div>
+        <div id="wrongAnswersContent"><div class="empty-state"><span class="empty-icon">✅</span><div class="empty-title">No wrong answers saved</div><div class="empty-desc">Complete a quiz to start tracking missed questions here.</div></div></div>
+      </div>
+
+      <!-- ─── NOTES ─── -->
+      <div id="page-notes" class="page-section">
+        <div class="section-header"><div><div class="section-title">📓 My Notes</div><div class="section-desc">Personal study notes by subject — auto-saved to your browser.</div></div></div>
+        <div id="notesContainer"><div class="empty-state"><span class="spinner"></span></div></div>
+      </div>
+
+      <!-- ─── BENDING CALC ─── -->
+      <div id="page-bending-calc" class="page-section">
+        <div class="section-header">
+          <div><div class="section-title">📐 Conduit Bending Calculator</div><div class="section-desc">Calculate take-up, shrink, offsets, saddle bends, and rolling offsets for EMT and rigid conduit.</div></div>
+        </div>
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="switchBendTab('stub',this)">90° Stub Up</button>
+          <button class="tab-btn" onclick="switchBendTab('offset',this)">Offset Bend</button>
+          <button class="tab-btn" onclick="switchBendTab('saddle',this)">Saddle Bend</button>
+          <button class="tab-btn" onclick="switchBendTab('rolling',this)">Rolling Offset</button>
+        </div>
+        <div class="tab-panel active" id="bend-panel-stub">
+          <div class="grid-2" style="gap:20px;">
+            <div class="card">
+              <div class="card-title" style="margin-bottom:16px;">Inputs</div>
+              <div class="form-group" style="margin-bottom:12px;"><label class="form-label">Desired Stub Height (inches)</label><input class="form-input" type="number" id="stubHeight" placeholder="e.g. 12" oninput="calcStub()"></div>
+              <div class="form-group" style="margin-bottom:12px;"><label class="form-label">Conduit Size</label>
+                <select class="form-select" id="stubConduitSize" onchange="calcStub()">
+                  <option value="0.5">½" EMT (take-up: 5")</option>
+                  <option value="0.75">¾" EMT (take-up: 6")</option>
+                  <option value="1">1" EMT (take-up: 8")</option>
+                  <option value="1.25">1¼" EMT (take-up: 11")</option>
+                  <option value="1.5">1½" EMT (take-up: 13")</option>
+                  <option value="2">2" EMT (take-up: 16")</option>
+                  <option value="0.5r">½" Rigid (take-up: 6")</option>
+                  <option value="0.75r">¾" Rigid (take-up: 8")</option>
+                  <option value="1r">1" Rigid (take-up: 11")</option>
+                </select>
+              </div>
+              <div id="stubResult" class="bend-result-box" style="display:none;"></div>
+            </div>
+            <div class="card">
+              <div class="card-title" style="margin-bottom:12px;">How It Works</div>
+              <div style="font-size:12px;color:var(--muted);line-height:1.7;">
+                <strong style="color:var(--gold)">Formula:</strong> Mark Location = Stub Height − Take-Up<br>
+                <strong style="color:var(--gold)">Take-up</strong> is the amount of conduit the bend "uses up."<br>
+                Measure from the end of the conduit to your mark, then align the mark with the bender's arrow/notch.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-panel" id="bend-panel-offset">
+          <div class="grid-2" style="gap:20px;">
+            <div class="card">
+              <div class="card-title" style="margin-bottom:16px;">Inputs</div>
+              <div class="form-group" style="margin-bottom:12px;"><label class="form-label">Rise / Offset Height (inches)</label><input class="form-input" type="number" id="offsetRise" placeholder="e.g. 6" oninput="calcOffset()"></div>
+              <div class="form-group" style="margin-bottom:12px;"><label class="form-label">Bend Angle</label>
+                <select class="form-select" id="offsetAngle" onchange="calcOffset()">
+                  <option value="10">10° (Multiplier: 6.0)</option>
+                  <option value="22">22° (Multiplier: 2.6)</option>
+                  <option value="30" selected>30° (Multiplier: 2.0)</option>
+                  <option value="45">45° (Multiplier: 1.414)</option>
+                  <option value="60">60° (Multiplier: 1.155)</option>
+                </select>
+              </div>
+              <div id="offsetResult" class="bend-result-box" style="display:none;"></div>
+            </div>
+            <div class="card">
+              <div class="card-title" style="margin-bottom:12px;">How It Works</div>
+              <div style="font-size:12px;color:var(--muted);line-height:1.7;">
+                <strong style="color:var(--gold)">Distance</strong> = Rise × Multiplier<br>
+                <strong style="color:var(--gold)">Shrink</strong> = Rise × Shrink/inch (total conduit run gets shorter)<br>
+                Make M1, measure distance, make M2. Both bends same angle, opposite direction.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-panel" id="bend-panel-saddle">
+          <div class="grid-2" style="gap:20px;">
+            <div class="card">
+              <div class="card-title" style="margin-bottom:16px;">Inputs</div>
+              <div class="form-group" style="margin-bottom:12px;"><label class="form-label">Obstruction Height (inches)</label><input class="form-input" type="number" id="saddleHeight" placeholder="e.g. 4" oninput="calcSaddle()"></div>
+              <div class="form-group" style="margin-bottom:12px;"><label class="form-label">Saddle Angle</label>
+                <select class="form-select" id="saddleAngle" onchange="calcSaddle()">
+                  <option value="22">22° Saddle</option>
+                  <option value="45" selected>45° Saddle</option>
+                </select>
+              </div>
+              <div id="saddleResult" class="bend-result-box" style="display:none;"></div>
+            </div>
+            <div class="card">
+              <div class="card-title" style="margin-bottom:12px;">How It Works</div>
+              <div style="font-size:12px;color:var(--muted);line-height:1.7;">
+                <strong style="color:var(--gold)">Center mark (C)</strong> is placed at the center of the obstruction.<br>
+                Two outer marks are placed symmetrically on either side.<br>
+                Center bend is 2× the angle; outer bends match the chosen angle.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-panel" id="bend-panel-rolling">
+          <div class="grid-2" style="gap:20px;">
+            <div class="card">
+              <div class="card-title" style="margin-bottom:16px;">Inputs</div>
+              <div class="form-group" style="margin-bottom:12px;"><label class="form-label">Rise (vertical change, inches)</label><input class="form-input" type="number" id="rollRise" placeholder="e.g. 6" oninput="calcRolling()"></div>
+              <div class="form-group" style="margin-bottom:12px;"><label class="form-label">Run (horizontal change, inches)</label><input class="form-input" type="number" id="rollRun" placeholder="e.g. 8" oninput="calcRolling()"></div>
+              <div id="rollingResult" class="bend-result-box" style="display:none;"></div>
+            </div>
+            <div class="card">
+              <div class="card-title" style="margin-bottom:12px;">How It Works</div>
+              <div style="font-size:12px;color:var(--muted);line-height:1.7;">
+                <strong style="color:var(--gold)">Diagonal</strong> = √(Rise² + Run²)<br>
+                <strong style="color:var(--gold)">True Offset</strong> = Diagonal (used for bending like a regular offset)<br>
+                <strong style="color:var(--gold)">Angle</strong> = arctan(Rise ÷ Run)<br>
+                Then use the offset multiplier for that angle to find distance between bends.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── NEC REFERENCE ─── -->
+      <div id="page-nec-reference" class="page-section">
+        <div class="section-header">
+          <div><div class="section-title">📗 NEC Article Quick Reference</div><div class="section-desc">Most-tested IBEW apprentice NEC articles with key requirements and code sections.</div></div>
+        </div>
+        <div class="nec-search"><input type="text" id="necSearchInput" placeholder="Search by article number or keyword…" oninput="filterNEC()"></div>
+        <div id="necArticleList"></div>
+      </div>
+
+      <!-- ─── WIRE REFERENCE ─── -->
+      <div id="page-wire-reference" class="page-section">
+        <div class="section-header">
+          <div><div class="section-title">🔌 Wire Ampacity Reference</div><div class="section-desc">NEC Table 310.16 ampacity values and conduit fill reference for common conductor sizes.</div></div>
+        </div>
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="switchWireTab('ampacity',this)">Ampacity Table</button>
+          <button class="tab-btn" onclick="switchWireTab('fill',this)">Conduit Fill</button>
+        </div>
+        <div class="tab-panel active" id="wire-panel-ampacity">
+          <div class="wire-search"><input type="text" id="wireSearchInput" placeholder="Search by wire size (e.g. 12, 1/0, 250)…" oninput="filterWire()"></div>
+          <div class="card"><div class="wire-table-wrap"><table class="wire-table" id="wireAmpacityTable"><thead><tr><th>AWG / kcmil</th><th>Cu @ 60°C</th><th>Cu @ 75°C</th><th>Cu @ 90°C</th><th>Al @ 75°C</th><th>Common Use</th></tr></thead><tbody id="wireAmpacityBody"></tbody></table></div></div>
+        </div>
+        <div class="tab-panel" id="wire-panel-fill">
+          <div class="card"><div class="wire-table-wrap"><table class="wire-table"><thead><tr><th>Conduit Size</th><th>Type</th><th>#14</th><th>#12</th><th>#10</th><th>#8</th><th>#6</th><th>#4</th><th>#3</th><th>#2</th><th>#1/0</th><th>#2/0</th><th>#3/0</th><th>#4/0</th></tr></thead><tbody id="conduitFillBody"></tbody></table></div></div>
+        </div>
+      </div>
+
+      <!-- ─── FORMULAS ─── -->
+      <div id="page-formulas" class="page-section">
+        <div class="section-header">
+          <div><div class="section-title">🧮 Electrical Formula Sheet</div><div class="section-desc">Essential formulas for every IBEW apprentice — with worked examples for each.</div></div>
+        </div>
+        <div id="formulaSheetContent"></div>
+      </div>
+
+      <!-- ─── GUIDE ─── -->
+      <div id="page-guide" class="page-section">
+        <div style="text-align:center;padding:40px 24px 28px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:24px;">
+          <div style="font-size:44px;margin-bottom:12px;text-shadow:0 0 8px rgba(201,168,76,0.8),0 0 16px rgba(201,168,76,0.4);">&#x26A1;</div>
+          <div class="section-title" style="font-size:24px;margin-bottom:8px;">Voltage Guide</div>
+          <div class="section-desc" style="font-size:14px;max-width:540px;margin:0 auto;">Everything you need to know to get the most out of your study sessions</div>
+        </div>
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="switchGuideTab('start',this)">&#x1F4D6; Getting Started</button>
+          <button class="tab-btn" onclick="switchGuideTab('tools',this)">&#x1F6E0;&#xFE0F; Study Tools</button>
+          <button class="tab-btn" onclick="switchGuideTab('api',this)">&#x1F511; API &amp; Usage</button>
+        </div>
+        <div class="tab-panel active" id="guide-panel-start">
+          <div class="card">
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              <div style="display:flex;gap:14px;align-items:flex-start;"><div style="min-width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--navy);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div><div style="font-size:14px;color:var(--text);line-height:1.6;"><strong>Sign in with Google</strong></div></div>
+              <div style="display:flex;gap:14px;align-items:flex-start;"><div style="min-width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--navy);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div><div style="font-size:14px;color:var(--text);line-height:1.6;">Go to <strong>Settings</strong> and set your <strong>Apprentice Year</strong></div></div>
+              <div style="display:flex;gap:14px;align-items:flex-start;"><div style="min-width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--navy);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div><div style="font-size:14px;color:var(--text);line-height:1.6;">Upload study materials like PDFs, notes, or images <strong>OR</strong> jump straight to <strong>Study Topics</strong> to use the built-in question banks &mdash; <span style="color:var(--success-light);font-weight:600;">no API key needed</span></div></div>
+              <div style="display:flex;gap:14px;align-items:flex-start;"><div style="min-width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--navy);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">4</div><div style="font-size:14px;color:var(--text);line-height:1.6;">To use AI features, get a free OpenRouter key first &mdash; see the <strong>API &amp; Usage</strong> tab above</div></div>
+              <div style="display:flex;gap:14px;align-items:flex-start;"><div style="min-width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--navy);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">5</div><div style="font-size:14px;color:var(--text);line-height:1.6;">Hit <strong>Generate Quiz</strong> &mdash; AI builds custom questions from your uploaded content</div></div>
+              <div style="display:flex;gap:14px;align-items:flex-start;"><div style="min-width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--navy);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">6</div><div style="font-size:14px;color:var(--text);line-height:1.6;">Review wrong answers after every session and use <strong>Re-Drill</strong> to drill weak spots</div></div>
+              <div style="display:flex;gap:14px;align-items:flex-start;"><div style="min-width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--navy);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">7</div><div style="font-size:14px;color:var(--text);line-height:1.6;">Use the floating buttons (bottom right) for the <strong>timer</strong>, <strong>calculator</strong>, and <strong>AI chat</strong></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-panel" id="guide-panel-tools">
+          <div class="card">
+            <div style="display:flex;flex-direction:column;gap:0;">
+              <div style="display:grid;grid-template-columns:150px 1fr;gap:8px 16px;padding:11px 0;border-bottom:1px solid var(--border);align-items:start;"><div style="font-size:13px;font-weight:700;color:var(--gold);">Flashcards</div><div style="font-size:13px;color:var(--muted);line-height:1.5;">Flip card review, mark Known or Still Learning</div></div>
+              <div style="display:grid;grid-template-columns:150px 1fr;gap:8px 16px;padding:11px 0;border-bottom:1px solid var(--border);align-items:start;"><div style="font-size:13px;font-weight:700;color:var(--gold);">Wrong Answers</div><div style="font-size:13px;color:var(--muted);line-height:1.5;">Every missed question auto saved, re-drill anytime</div></div>
+              <div style="display:grid;grid-template-columns:150px 1fr;gap:8px 16px;padding:11px 0;border-bottom:1px solid var(--border);align-items:start;"><div style="font-size:13px;font-weight:700;color:var(--gold);">Notes</div><div style="font-size:13px;color:var(--muted);line-height:1.5;">Per-subject notepad, auto saves to your browser</div></div>
+              <div style="display:grid;grid-template-columns:150px 1fr;gap:8px 16px;padding:11px 0;border-bottom:1px solid var(--border);align-items:start;"><div style="font-size:13px;font-weight:700;color:var(--gold);">Progress</div><div style="font-size:13px;color:var(--muted);line-height:1.5;">Full score history, streak tracking, charts</div></div>
+              <div style="display:grid;grid-template-columns:150px 1fr;gap:8px 16px;padding:11px 0;border-bottom:1px solid var(--border);align-items:start;"><div style="font-size:13px;font-weight:700;color:var(--gold);">Bending Calc</div><div style="font-size:13px;color:var(--muted);line-height:1.5;">Stub up, offset, saddle, rolling offset with live results</div></div>
+              <div style="display:grid;grid-template-columns:150px 1fr;gap:8px 16px;padding:11px 0;border-bottom:1px solid var(--border);align-items:start;"><div style="font-size:13px;font-weight:700;color:var(--gold);">NEC Reference</div><div style="font-size:13px;color:var(--muted);line-height:1.5;">Most-tested articles with key points and code sections</div></div>
+              <div style="display:grid;grid-template-columns:150px 1fr;gap:8px 16px;padding:11px 0;border-bottom:1px solid var(--border);align-items:start;"><div style="font-size:13px;font-weight:700;color:var(--gold);">Wire Reference</div><div style="font-size:13px;color:var(--muted);line-height:1.5;">NEC Table 310.16 ampacity and conduit fill reference</div></div>
+              <div style="display:grid;grid-template-columns:150px 1fr;gap:8px 16px;padding:11px 0;border-bottom:1px solid var(--border);align-items:start;"><div style="font-size:13px;font-weight:700;color:var(--gold);">Formulas</div><div style="font-size:13px;color:var(--muted);line-height:1.5;">Complete formula sheet with worked examples</div></div>
+              <div style="display:grid;grid-template-columns:150px 1fr;gap:8px 16px;padding:11px 0;border-bottom:1px solid var(--border);align-items:start;"><div style="font-size:13px;font-weight:700;color:var(--gold);">Study Timer</div><div style="font-size:13px;color:var(--muted);line-height:1.5;">Pomodoro-style timer, bottom right corner</div></div>
+              <div style="display:grid;grid-template-columns:150px 1fr;gap:8px 16px;padding:11px 0;border-bottom:1px solid var(--border);align-items:start;"><div style="font-size:13px;font-weight:700;color:var(--gold);">Calculator</div><div style="font-size:13px;color:var(--muted);line-height:1.5;">Scientific calc plus Ohm&#39;s Law, power, voltage drop solvers</div></div>
+              <div style="display:grid;grid-template-columns:150px 1fr;gap:8px 16px;padding:11px 0;align-items:start;"><div style="font-size:13px;font-weight:700;color:var(--gold);">AI Assistant</div><div style="font-size:13px;color:var(--muted);line-height:1.5;">Subject-locked chat tutor, bottom right corner</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-panel" id="guide-panel-api">
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-title" style="margin-bottom:16px;">&#x1F511; Getting Your Free Key</div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;gap:10px;align-items:flex-start;"><span style="color:var(--gold);font-weight:700;flex-shrink:0;">&rarr;</span><div style="font-size:13.5px;color:var(--text);line-height:1.5;">Go to <strong style="color:var(--gold);">openrouter.ai</strong> and sign up &mdash; no credit card needed</div></div>
+              <div style="display:flex;gap:10px;align-items:flex-start;"><span style="color:var(--gold);font-weight:700;flex-shrink:0;">&rarr;</span><div style="font-size:13.5px;color:var(--text);line-height:1.5;">Dashboard &rarr; API Keys &rarr; Create API Key &rarr; copy it</div></div>
+              <div style="display:flex;gap:10px;align-items:flex-start;"><span style="color:var(--gold);font-weight:700;flex-shrink:0;">&rarr;</span><div style="font-size:13.5px;color:var(--text);line-height:1.5;">Paste it into Voltage &rarr; <strong>Settings &rarr; OpenRouter API Key</strong>, or click the &#x2699;&#xFE0F; button in the top bar</div></div>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-title" style="margin-bottom:14px;">&#x1F4CA; What Uses Your API Quota</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);"><span style="font-size:13px;color:var(--text);">Generate Quiz from uploads</span><span class="badge badge-red">~1,500 tokens/quiz</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);"><span style="font-size:13px;color:var(--text);">AI Study Assistant chat</span><span class="badge badge-red">~400 tokens/message</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);"><span style="font-size:13px;color:var(--text);">Built-in question banks</span><span class="badge badge-green">100% free</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;"><span style="font-size:13px;color:var(--text);">All tools &amp; calculators</span><span class="badge badge-green">100% free</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:12px;">&#x1F4A1; Tips to Save API Usage</div>
+            <div style="display:flex;flex-direction:column;gap:0;">
+              <div style="font-size:13px;color:var(--muted);padding:8px 0;border-bottom:1px solid var(--border);">&#x2022; Use built-in Study Topics question banks whenever possible</div>
+              <div style="font-size:13px;color:var(--muted);padding:8px 0;border-bottom:1px solid var(--border);">&#x2022; Only upload files when you have specific material to quiz from</div>
+              <div style="font-size:13px;color:var(--muted);padding:8px 0;border-bottom:1px solid var(--border);">&#x2022; Keep AI chat questions short and specific</div>
+              <div style="font-size:13px;color:var(--muted);padding:8px 0;">&#x2022; Export your data regularly to keep it safe</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <footer class="app-footer">
+      <div class="footer-brand">Damask Holdings</div>
+      <div style="margin-top:4px;">Voltage — IBEW Study Platform · Built for the electrical trade</div>
+    </footer>
+  </div>
+</div>
+
+<!-- ════ FLOATING ACTION BUTTONS ════ -->
+<div class="fab-container" id="fabContainer" style="display:none;">
+  <button class="fab-btn" id="fabAI" onclick="togglePanel('aiChatPanel','fabAI')" title="AI Study Assistant">🤖</button>
+  <button class="fab-btn" id="fabTimer" onclick="togglePanel('timerPanel','fabTimer')" title="Study Timer">⏱
+    <span class="fab-timer-badge" id="fabTimerBadge"></span>
+  </button>
+  <button class="fab-btn" id="fabCalc" onclick="togglePanel('calcPanel','fabCalc')" title="Scientific Calculator">🔢</button>
+</div>
+
+<!-- ════ CALCULATOR PANEL ════ -->
+<div class="float-panel" id="calcPanel">
+  <div class="float-panel-header" id="calcHandle">
+    <div class="float-panel-title">🔢 Scientific Calculator</div>
+    <button class="float-panel-close" onclick="togglePanel('calcPanel','fabCalc')">✕</button>
+  </div>
+  <div class="calc-tabs">
+    <button class="calc-tab active" onclick="switchCalcTab('std',this)">Standard</button>
+    <button class="calc-tab" onclick="switchCalcTab('elec',this)">Electrical</button>
+  </div>
+  <div class="calc-tab-panel active" id="calc-std">
+    <div class="calc-display">
+      <div class="calc-expr" id="calcExpr"></div>
+      <div class="calc-result" id="calcResult">0</div>
+    </div>
+    <div class="calc-grid">
+      <button class="calc-btn clr" onclick="calcAction('clear')">C</button>
+      <button class="calc-btn fn" onclick="calcAction('pct')">%</button>
+      <button class="calc-btn fn" onclick="calcAction('sqrt')">√</button>
+      <button class="calc-btn op" onclick="calcAction('op','/')">÷</button>
+      <button class="calc-btn fn" onclick="calcAction('sin')">sin</button>
+      <button class="calc-btn fn" onclick="calcAction('cos')">cos</button>
+      <button class="calc-btn fn" onclick="calcAction('tan')">tan</button>
+      <button class="calc-btn op" onclick="calcAction('op','*')">×</button>
+      <button class="calc-btn" onclick="calcAction('num','7')">7</button>
+      <button class="calc-btn" onclick="calcAction('num','8')">8</button>
+      <button class="calc-btn" onclick="calcAction('num','9')">9</button>
+      <button class="calc-btn op" onclick="calcAction('op','-')">−</button>
+      <button class="calc-btn" onclick="calcAction('num','4')">4</button>
+      <button class="calc-btn" onclick="calcAction('num','5')">5</button>
+      <button class="calc-btn" onclick="calcAction('num','6')">6</button>
+      <button class="calc-btn op" onclick="calcAction('op','+')">+</button>
+      <button class="calc-btn fn" onclick="calcAction('log')">log</button>
+      <button class="calc-btn" onclick="calcAction('num','1')">1</button>
+      <button class="calc-btn" onclick="calcAction('num','2')">2</button>
+      <button class="calc-btn" onclick="calcAction('num','3')">3</button>
+      <button class="calc-btn fn" onclick="calcAction('pow')">x²</button>
+      <button class="calc-btn span2" onclick="calcAction('num','0')">0</button>
+      <button class="calc-btn" onclick="calcAction('dot')">.</button>
+      <button class="calc-btn fn" onclick="calcAction('back')">⌫</button>
+      <button class="calc-btn op" onclick="calcAction('pi')">π</button>
+      <button class="calc-btn eq span2" onclick="calcAction('eq')">=</button>
+    </div>
+  </div>
+  <div class="calc-tab-panel" id="calc-elec" style="overflow-y:auto;max-height:380px;">
+    <div class="elec-solver">
+      <h4>⚡ Ohm's Law — V = I × R</h4>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Enter any 2 values — leave the unknown blank</div>
+      <div class="solver-grid">
+        <div class="solver-input-group"><div class="solver-label">V — Voltage (V)</div><input class="solver-input" type="number" id="ohmV" placeholder="?" oninput="solveOhm()"></div>
+        <div class="solver-input-group"><div class="solver-label">I — Current (A)</div><input class="solver-input" type="number" id="ohmI" placeholder="?" oninput="solveOhm()"></div>
+        <div class="solver-input-group"><div class="solver-label">R — Resistance (Ω)</div><input class="solver-input" type="number" id="ohmR" placeholder="?" oninput="solveOhm()"></div>
+      </div>
+      <div class="solver-result" id="ohmResult">Enter 2 values above</div>
+    </div>
+    <div class="elec-solver">
+      <h4>🔋 Power Wheel — P = I × E</h4>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Enter any 2 values — leave the unknown blank</div>
+      <div class="solver-grid">
+        <div class="solver-input-group"><div class="solver-label">P — Power (W)</div><input class="solver-input" type="number" id="pwrP" placeholder="?" oninput="solvePower()"></div>
+        <div class="solver-input-group"><div class="solver-label">I — Current (A)</div><input class="solver-input" type="number" id="pwrI" placeholder="?" oninput="solvePower()"></div>
+        <div class="solver-input-group"><div class="solver-label">E — Voltage (V)</div><input class="solver-input" type="number" id="pwrE" placeholder="?" oninput="solvePower()"></div>
+      </div>
+      <div class="solver-result" id="pwrResult">Enter 2 values above</div>
+    </div>
+    <div class="elec-solver">
+      <h4>📉 Voltage Drop Calculator</h4>
+      <div class="vd-grid" style="margin-bottom:8px;">
+        <div class="solver-input-group"><div class="solver-label">Material</div><select class="solver-input" id="vdMaterial" onchange="solveVD()"><option value="12.9">Copper (K=12.9)</option><option value="21.2">Aluminum (K=21.2)</option></select></div>
+        <div class="solver-input-group"><div class="solver-label">Amperage (A)</div><input class="solver-input" type="number" id="vdAmps" placeholder="e.g. 20" oninput="solveVD()"></div>
+        <div class="solver-input-group"><div class="solver-label">Distance (ft, one-way)</div><input class="solver-input" type="number" id="vdDist" placeholder="e.g. 100" oninput="solveVD()"></div>
+        <div class="solver-input-group"><div class="solver-label">Wire Gauge (AWG)</div><select class="solver-input" id="vdGauge" onchange="solveVD()">
+          <option value="4110">14 AWG</option><option value="6530">12 AWG</option><option value="10380">10 AWG</option>
+          <option value="16510">8 AWG</option><option value="26240">6 AWG</option><option value="41740">4 AWG</option>
+          <option value="52620">3 AWG</option><option value="66360">2 AWG</option><option value="83690">1 AWG</option>
+          <option value="105600">1/0 AWG</option><option value="133100">2/0 AWG</option><option value="167800">3/0 AWG</option>
+          <option value="211600">4/0 AWG</option><option value="250000">250 kcmil</option><option value="350000">350 kcmil</option><option value="500000">500 kcmil</option>
+        </select></div>
+      </div>
+      <div class="solver-result" id="vdResult">Enter values above</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:6px;">Formula: VD = (2 × K × I × L) / CM &nbsp;|&nbsp; NEC recommends ≤3% VD on branch circuits</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ TIMER PANEL ════ -->
+<div class="float-panel" id="timerPanel">
+  <div class="float-panel-header" id="timerHandle">
+    <div class="float-panel-title">⏱ Study Timer</div>
+    <button class="float-panel-close" onclick="togglePanel('timerPanel','fabTimer')">✕</button>
+  </div>
+  <div class="timer-display">
+    <div class="timer-ring">
+      <svg width="140" height="140" viewBox="0 0 140 140">
+        <circle class="tr-bg" cx="70" cy="70" r="60"/>
+        <circle class="tr-fill" id="timerRingFill" cx="70" cy="70" r="60" stroke-dasharray="377" stroke-dashoffset="0"/>
+      </svg>
+      <div class="timer-time">
+        <div class="timer-count" id="timerCount">25:00</div>
+        <div class="timer-mode-label" id="timerModeLabel">STUDY</div>
+      </div>
+    </div>
+    <div class="timer-sessions" id="timerSessions">Session 1 of ∞</div>
+  </div>
+  <div class="timer-controls">
+    <button class="btn btn-secondary btn-sm" onclick="timerReset()">↺ Reset</button>
+    <button class="btn btn-primary" id="timerStartBtn" onclick="timerToggle()">▶ Start</button>
+    <button class="btn btn-secondary btn-sm" onclick="timerSkip()">⏭ Skip</button>
+  </div>
+  <div class="timer-settings">
+    <div class="timer-set-group"><label class="timer-set-label">Study (min)</label><input type="number" class="timer-set-input" id="timerStudyMin" value="25" min="1" max="60" onchange="timerUpdateSettings()"></div>
+    <div class="timer-set-group"><label class="timer-set-label">Break (min)</label><input type="number" class="timer-set-input" id="timerBreakMin" value="5" min="1" max="30" onchange="timerUpdateSettings()"></div>
+  </div>
+</div>
+
+<!-- ════ AI CHAT PANEL ════ -->
+<div class="float-panel" id="aiChatPanel">
+  <div class="float-panel-header" id="aiHandle">
+    <div class="float-panel-title">🤖 AI Study Assistant</div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <button class="ai-clear-btn" onclick="aiClearChat()">Clear</button>
+      <button class="float-panel-close" onclick="togglePanel('aiChatPanel','fabAI')">✕</button>
+    </div>
+  </div>
+  <div class="ai-subject-lock" id="aiSubjectLock">🔒 Subject Lock: None selected — start a quiz first</div>
+  <div class="ai-messages" id="aiMessages">
+    <div class="ai-msg">
+      <div class="ai-bubble">👋 Hi! I'm your IBEW study assistant. Start a quiz on a topic and I'll lock in to that subject to answer your questions.<br><br>I stay strictly on-topic — no off-subject questions allowed! 💪</div>
+    </div>
+  </div>
+  <div class="ai-input-row">
+    <textarea class="ai-input" id="aiInput" placeholder="Ask a question about your current subject…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();aiSend();}"></textarea>
+    <button class="ai-send" id="aiSendBtn" onclick="aiSend()">➤</button>
+  </div>
+</div>
+
+<!-- ════ SCRIPTS ════ -->
+<script>
+// Initialize PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+</script>
+
+<!-- Load JS files in dependency order -->
+<script src="js/state.js"></script>
+<script src="js/question-banks.js"></script>
+<script src="js/reference-data.js"></script>
+<script src="js/quiz-engine.js"></script>
+<script src="js/flashcards.js"></script>
+<script src="js/ai-chat.js"></script>
+<script src="js/progress.js"></script>
+<script src="js/notes.js"></script>
+<script src="js/bending-calc.js"></script>
+<script src="js/calculator.js"></script>
+<script src="js/timer.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
