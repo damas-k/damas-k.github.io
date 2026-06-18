@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════
 // AUTH - Google Sign-In
 // ═══════════════════════════════════════
-const GOOGLE_CLIENT_ID = '382864329081-jnijbupd92gt42uvn6chntcodqj2sjim.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '78249533590-tdti4sh5173jjq3agueqkbdmn75uobbc.apps.googleusercontent.com';
 
 function initGoogleSignIn() {
   if (typeof google === 'undefined' || !google.accounts) { setTimeout(initGoogleSignIn, 300); return; }
