@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════
 // FREE MODELS - Fallback list for API calls
 // ═══════════════════════════════════════
-const FREE_MODELS = ['openrouter/free'];
+const FREE_MODELS = ['openrouter/free', 'meta-llama/llama-3.1-8b-instruct:free', 'google/gemini-2.0-flash-exp:free', 'mistralai/mistral-7b-instruct:free'];
 
 // ═══════════════════════════════════════
 // STATE
