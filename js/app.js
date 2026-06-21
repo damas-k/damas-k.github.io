@@ -17,6 +17,7 @@ function navigate(page) {
   document.getElementById('topbarTitle').textContent = titles[page] || 'Voltage';
   if (page === 'wrong-answers') renderWrongAnswers();
   if (page === 'notes') renderNotes();
+  if (page === 'progress') renderProgress();
   if (page === 'bending-calc') { }
   if (page === 'nec-reference') renderNECReference();
   if (page === 'wire-reference') renderWireTable();
