@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +8,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -59,7 +63,7 @@
 <!-- ════ LOGIN VIEW ════ -->
 <div id="view-login" class="view active">
   <div class="login-card">
-    <div class="brand-wordmark">Damask Holdings</div>
+    <div class="brand-wordmark">⚡ Damask Holdings</div>
     <div class="login-logo">⚡</div>
     <div class="login-title">Voltage</div>
     <div class="login-subtitle">IBEW Apprentice Study Platform<br>Master the code. Ace the exam.</div>
@@ -75,9 +79,9 @@
     <div id="gsi-button-container" style="position:absolute;opacity:0;pointer-events:none;height:0;overflow:hidden;"></div>
     <div class="login-footer">By signing in, you agree to use this tool responsibly.<br>Study hard. Work safe. Know the code.</div>
   </div>
-  <div style="position:absolute;bottom:24px;left:0;right:0;text-align:center;">
-    <div class="footer-brand">Damask Holdings</div>
-    <div style="font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:0.05em;">Built for the trades.</div>
+  <div style="position:absolute;bottom:24px;left:0;right:0;text-align:center;z-index:2;">
+    <div class="footer-brand">⚡ Damask Holdings</div>
+    <div style="font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:5px;letter-spacing:0.08em;text-transform:uppercase;opacity:0.8;">Built for the trades</div>
   </div>
 </div>
 
@@ -129,21 +133,20 @@
         <button class="btn-hamburger" onclick="toggleSidebar()">☰</button>
         <div class="topbar-title" id="topbarTitle">Dashboard</div>
       </div>
-      
-<div class="topbar-actions">
-  <span class="badge badge-red" id="rateLimitBadge" style="display:none;cursor:default;" title="Rate limits disabled — API quota burns fast!">⚡ Limits OFF</span>
-  <span style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);background:var(--navy-light);border:1px solid var(--border-light);padding:3px 10px;border-radius:20px;">🔧 Alpha Build 0.5</span>
-  <button class="btn btn-secondary btn-sm" onclick="openModal('apiModal')" title="API Settings">⚙️ API Key</button>
-  <div class="badge badge-gold" id="topbarYearBadge">Year 1</div>
-</div>
+      <div class="topbar-actions">
+        <span class="badge badge-red" id="rateLimitBadge" style="display:none;cursor:default;" title="Rate limits disabled — API quota burns fast!">⚡ Limits OFF</span>
+        <button class="btn btn-secondary btn-sm" onclick="openModal('apiModal')" title="API Settings">⚙️ API Key</button>
+        <div class="badge badge-gold" id="topbarYearBadge">Year 1</div>
+      </div>
     </div>
 
     <div class="page-inner">
-      
+
       <!-- ─── DASHBOARD ─── -->
       <div id="page-dashboard" class="page-section active">
         <div class="section-header">
           <div>
+            <div class="kicker">01 — Dashboard</div>
             <div class="section-title">Good evening, <span class="highlight-gold" id="dashboardName">Apprentice</span> 👋</div>
             <div class="section-desc">Ready to hit the books? Your next exam won't study itself.</div>
           </div>
@@ -178,7 +181,7 @@
       <!-- ─── UPLOAD ─── -->
       <div id="page-upload" class="page-section">
         <div class="section-header">
-          <div><div class="section-title">Upload Study Materials</div><div class="section-desc">Upload NEC codebooks, wiring diagrams, handouts — AI generates a targeted quiz from your content.</div></div>
+          <div><div class="kicker">02 — Upload</div><div class="section-title">Upload Study Materials</div><div class="section-desc">Upload NEC codebooks, wiring diagrams, handouts — AI generates a targeted quiz from your content.</div></div>
         </div>
         <div class="card mb-20" style="margin-bottom:20px;">
           <div class="drop-zone" id="dropZone">
@@ -214,7 +217,7 @@
       <!-- ─── QUIZ ─── -->
       <div id="page-quiz" class="page-section">
         <div id="quizContainer">
-          <div class="empty-state"><span class="empty-icon">📝</span><div class="empty-title">No active quiz</div><div class="empty-desc">Upload materials and generate a quiz, or use Quick Start from the Dashboard.</div><button class="btn btn-primary" style="margin-top:16px;" onclick="navigate('upload')">Upload & Generate</button></div>
+          <div class="empty-state"><span class="empty-icon">⚡</span><div class="empty-title">No active quiz</div><div class="empty-desc">Upload materials and generate a quiz, or use Quick Start from the Dashboard.</div><button class="btn btn-primary" style="margin-top:16px;" onclick="navigate('upload')">Upload & Generate</button></div>
         </div>
       </div>
 
@@ -228,7 +231,7 @@
       <!-- ─── PROGRESS ─── -->
       <div id="page-progress" class="page-section">
         <div class="section-header">
-          <div><div class="section-title">My Progress</div><div class="section-desc">Track your performance across all sessions and topics.</div></div>
+          <div><div class="kicker">03 — Progress</div><div class="section-title">My Progress</div><div class="section-desc">Track your performance across all sessions and topics.</div></div>
           <button class="btn btn-danger btn-sm" onclick="clearProgress()">Clear History</button>
         </div>
         <div class="grid-4" style="margin-bottom:20px;">
@@ -244,14 +247,14 @@
       <!-- ─── TOPICS ─── -->
       <div id="page-topics" class="page-section">
         <div class="section-header">
-          <div><div class="section-title">Electrical Study Topics</div><div class="section-desc">IBEW apprentice curriculum — tap any topic to generate a subject-locked quiz.</div></div>
+          <div><div class="kicker">04 — Topics</div><div class="section-title">Electrical Study Topics</div><div class="section-desc">IBEW apprentice curriculum — tap any topic to generate a subject-locked quiz.</div></div>
         </div>
         <div id="topicsGrid"></div>
       </div>
 
       <!-- ─── SETTINGS ─── -->
       <div id="page-settings" class="page-section">
-        <div class="section-header"><div><div class="section-title">Settings</div><div class="section-desc">Customize your study experience.</div></div></div>
+        <div class="section-header"><div><div class="kicker">05 — Settings</div><div class="section-title">Settings</div><div class="section-desc">Customize your study experience.</div></div></div>
         <div class="card">
           <div class="settings-section">
             <div class="settings-section-title">Account</div>
@@ -288,7 +291,7 @@
       <!-- ─── WRONG ANSWERS ─── -->
       <div id="page-wrong-answers" class="page-section">
         <div class="section-header">
-          <div><div class="section-title">Wrong Answers</div><div class="section-desc">Questions you've missed — grouped by topic for targeted re-drilling.</div></div>
+          <div><div class="kicker">06 — Re-Drill</div><div class="section-title">Wrong Answers</div><div class="section-desc">Questions you've missed — grouped by topic for targeted re-drilling.</div></div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;"><button class="btn btn-primary" onclick="startReDrill()">🔁 Re-Drill</button><button class="btn btn-danger" onclick="clearWrongAnswers()">🗑️ Clear All</button></div>
         </div>
         <div id="wrongAnswersContent"><div class="empty-state"><span class="empty-icon">✅</span><div class="empty-title">No wrong answers saved</div><div class="empty-desc">Complete a quiz to start tracking missed questions here.</div></div></div>
@@ -296,14 +299,14 @@
 
       <!-- ─── NOTES ─── -->
       <div id="page-notes" class="page-section">
-        <div class="section-header"><div><div class="section-title">📓 My Notes</div><div class="section-desc">Personal study notes by subject — auto-saved to your browser.</div></div></div>
+        <div class="section-header"><div><div class="kicker">07 — Notes</div><div class="section-title">📓 My Notes</div><div class="section-desc">Personal study notes by subject — auto-saved to your browser.</div></div></div>
         <div id="notesContainer"><div class="empty-state"><span class="spinner"></span></div></div>
       </div>
 
       <!-- ─── BENDING CALC ─── -->
       <div id="page-bending-calc" class="page-section">
         <div class="section-header">
-          <div><div class="section-title">📐 Conduit Bending Calculator</div><div class="section-desc">Calculate take-up, shrink, offsets, saddle bends, and rolling offsets for EMT and rigid conduit.</div></div>
+          <div><div class="kicker">08 — Tools</div><div class="section-title">📐 Conduit Bending Calculator</div><div class="section-desc">Calculate take-up, shrink, offsets, saddle bends, and rolling offsets for EMT and rigid conduit.</div></div>
         </div>
         <div class="tab-bar">
           <button class="tab-btn active" onclick="switchBendTab('stub',this)">90° Stub Up</button>
@@ -414,7 +417,7 @@
       <!-- ─── NEC REFERENCE ─── -->
       <div id="page-nec-reference" class="page-section">
         <div class="section-header">
-          <div><div class="section-title">📗 NEC Article Quick Reference</div><div class="section-desc">Most-tested IBEW apprentice NEC articles with key requirements and code sections.</div></div>
+          <div><div class="kicker">09 — Reference</div><div class="section-title">📗 NEC Article Quick Reference</div><div class="section-desc">Most-tested IBEW apprentice NEC articles with key requirements and code sections.</div></div>
         </div>
         <div class="nec-search"><input type="text" id="necSearchInput" placeholder="Search by article number or keyword…" oninput="filterNEC()"></div>
         <div id="necArticleList"></div>
@@ -423,7 +426,7 @@
       <!-- ─── WIRE REFERENCE ─── -->
       <div id="page-wire-reference" class="page-section">
         <div class="section-header">
-          <div><div class="section-title">🔌 Wire Ampacity Reference</div><div class="section-desc">NEC Table 310.16 ampacity values and conduit fill reference for common conductor sizes.</div></div>
+          <div><div class="kicker">09 — Reference</div><div class="section-title">🔌 Wire Ampacity Reference</div><div class="section-desc">NEC Table 310.16 ampacity values and conduit fill reference for common conductor sizes.</div></div>
         </div>
         <div class="tab-bar">
           <button class="tab-btn active" onclick="switchWireTab('ampacity',this)">Ampacity Table</button>
@@ -441,17 +444,21 @@
       <!-- ─── FORMULAS ─── -->
       <div id="page-formulas" class="page-section">
         <div class="section-header">
-          <div><div class="section-title">🧮 Electrical Formula Sheet</div><div class="section-desc">Essential formulas for every IBEW apprentice — with worked examples for each.</div></div>
+          <div><div class="kicker">09 — Reference</div><div class="section-title">🧮 Electrical Formula Sheet</div><div class="section-desc">Essential formulas for every IBEW apprentice — with worked examples for each.</div></div>
         </div>
         <div id="formulaSheetContent"></div>
       </div>
 
       <!-- ─── GUIDE ─── -->
       <div id="page-guide" class="page-section">
-        <div style="text-align:center;padding:40px 24px 28px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:24px;">
-          <div style="font-size:44px;margin-bottom:12px;text-shadow:0 0 8px rgba(201,168,76,0.8),0 0 16px rgba(201,168,76,0.4);">&#x26A1;</div>
-          <div class="section-title" style="font-size:24px;margin-bottom:8px;">Voltage Guide</div>
-          <div class="section-desc" style="font-size:14px;max-width:540px;margin:0 auto;">Everything you need to know to get the most out of your study sessions</div>
+        <div style="text-align:center;padding:48px 24px 32px;background:linear-gradient(165deg, var(--card) 0%, rgba(15,31,61,0.6) 100%);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:24px;position:relative;overflow:hidden;">
+          <div style="position:absolute;inset:0;background:var(--bolt-scatter);background-size:300px;opacity:0.45;pointer-events:none;"></div>
+          <div style="position:relative;z-index:1;">
+            <div class="kicker" style="justify-content:center;">00 — Guide</div>
+            <div style="font-size:46px;margin-bottom:12px;text-shadow:0 0 8px rgba(201,168,76,0.8),0 0 16px rgba(201,168,76,0.4);">&#x26A1;</div>
+            <div class="section-title" style="font-family:var(--font-display);font-size:26px;margin-bottom:8px;">Voltage Guide</div>
+            <div class="section-desc" style="font-size:14px;max-width:540px;margin:0 auto;">Everything you need to know to get the most out of your study sessions</div>
+          </div>
         </div>
         <div class="tab-bar">
           <button class="tab-btn active" onclick="switchGuideTab('start',this)">&#x1F4D6; Getting Started</button>
@@ -521,8 +528,8 @@
     </div>
 
     <footer class="app-footer">
-      <div class="footer-brand">Damask Holdings</div>
-      <div style="margin-top:4px;">Voltage — IBEW Study Platform · Built for the electrical trade</div>
+      <div class="footer-brand">⚡ Damask Holdings</div>
+      <div style="font-family:var(--font-mono);margin-top:5px;letter-spacing:0.04em;">Voltage — IBEW Study Platform · Built for the electrical trade</div>
     </footer>
   </div>
 </div>
