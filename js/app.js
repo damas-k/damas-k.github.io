@@ -158,7 +158,8 @@ function clearFiles() {
 function exportData() {
   const data = {
     version: '2.0', exportedAt: new Date().toISOString(), apprenticeYear: state.year,
-    sessions: state.sessions, wrongAnswers: getWrongAnswers(), notes: getNotes(), uploadedFiles: state.uploadedFiles
+    sessions: state.sessions, wrongAnswers: getWrongAnswers(), notes: getNotes(), uploadedFiles: state.uploadedFiles,
+    apiKey: state.apiKey || ''
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
   const url = URL.createObjectURL(blob);
@@ -190,6 +191,7 @@ function importData() {
         if (data.sessions) { state.sessions = data.sessions; localStorage.setItem('voltage_sessions', JSON.stringify(data.sessions)); }
         if (data.wrongAnswers) saveWrongAnswers(data.wrongAnswers);
         if (data.notes) saveNotes(data.notes);
+        if (data.apiKey) { state.apiKey = data.apiKey; localStorage.setItem('voltage_api_key', data.apiKey); updateApiKeyStatus(); }
       } else {
         if (data.sessions) {
           const ids = new Set(state.sessions.map(s => s.id));
@@ -206,6 +208,8 @@ function importData() {
           Object.entries(data.notes).forEach(([k, v]) => { if (!en[k] || !en[k].text) en[k] = v; });
           saveNotes(en);
         }
+        // Merge only fills in a key if you don't already have one — never overwrites a working key
+        if (data.apiKey && !state.apiKey) { state.apiKey = data.apiKey; localStorage.setItem('voltage_api_key', data.apiKey); updateApiKeyStatus(); }
       }
       showToast('Import complete!', 'success');
       renderDashboard();
@@ -218,8 +222,8 @@ function importData() {
 function showImportDialog(data) {
   return new Promise(resolve => {
     const overlay = document.getElementById('importModal');
-    const sc = data.sessions?.length || 0, wc = data.wrongAnswers?.length || 0, nc = Object.keys(data.notes || {}).length;
-    document.getElementById('importSummary').innerHTML = `<div style="background:var(--navy-light);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:16px;"><div style="display:flex;gap:10px;flex-wrap:wrap;"><span class="badge badge-blue">📝 ${sc} sessions</span><span class="badge badge-red">❌ ${wc} wrong answers</span><span class="badge badge-gold">📓 ${nc} notes</span></div></div>`;
+    const sc = data.sessions?.length || 0, wc = data.wrongAnswers?.length || 0, nc = Object.keys(data.notes || {}).length, fc = data.uploadedFiles?.length || 0, kc = data.apiKey ? 1 : 0;
+    document.getElementById('importSummary').innerHTML = `<div style="background:var(--navy-light);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:16px;"><div style="display:flex;gap:10px;flex-wrap:wrap;"><span class="badge badge-blue">📝 ${sc} sessions</span><span class="badge badge-red">❌ ${wc} wrong answers</span><span class="badge badge-gold">📓 ${nc} notes</span><span class="badge badge-muted">📁 ${fc} files</span>${kc ? '<span class="badge badge-green">🔑 API key</span>' : ''}</div></div>`;
     overlay.classList.add('open');
     document.getElementById('importBtnReplace').onclick = () => { overlay.classList.remove('open'); resolve('replace'); };
     document.getElementById('importBtnMerge').onclick = () => { overlay.classList.remove('open'); resolve('merge'); };
